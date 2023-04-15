@@ -22,18 +22,18 @@
 Input인 t번째 거래일의 price sequence는 $X^t \in \R^{n \times T \times d_{feat}}$ 으로 정의하고 T는 t이전의 거래일의 숫자를 의미하고, $d_{feat}$ 은 과거 주식가격의 dimension을 의미한다. $X^t$는 처음에 linear transformation과 positional encoding 과정을 거친다. 
 
 $$
-\hat{H}^t = W_{in}X^t + b_{in}\\
-H^t = \hat{H}^t + PE\\
-\; PE(p,2i) = \sin(p/10000^{2i/d_{in}})\\
+\hat{H}^t = W_{in}X^t + b_{in} \\
+H^t = \hat{H}^t + PE \\
+\; PE(p,2i) = \sin(p/10000^{2i/d_{in}}) \\
 PE(p,2i + 1) = \cos(p/10000^{2i/d_{in}})
 $$
 
 p는 거래일의 의미하고, i는 dimension, 그리고 $d_{in}$은 input feature의 dimension을 의미하고 $W_{in} \in \R^{d_{feat} \times d_{in}}$과 $b_{in} \in \R^{d_{in}}$은 파라미터다. 
 
 $$
-Q_i^t =H^tW_i^Q, \; K_i^t = H^tW_i^K, V_i^t = H^tW_i^V\\
-Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_{in}}})V\\
-EncHead_i^t = Attention(Q_i^t, K_i^t, V_i^t)\\
+Q_i^t =H^tW_i^Q, \; K_i^t = H^tW_i^K, V_i^t = H^tW_i^V \\
+Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_{in}}})V \\
+EncHead_i^t = Attention(Q_i^t, K_i^t, V_i^t) \\
 H^t_{enc} = Concat(EncHead_1^t, \dots, EncHead^t_{h_{enc}})W_o
 $$
 
@@ -59,9 +59,10 @@ $W_{o,r} \in \R^{h_{tga}Td_{enc} \times d_{att}}$ 는 output projection matrix�
 
 ### __(d) Heterogeneous Graph Attention Mechanism__
 앞선 과정을 통해 3개의 종류의 임베딩($H^t_{self}, H^t_{pos}, H^t_{neg}$)을 정의 하였다. $H^t_{self} = W_{self}H^t_{enc} + b_{self}$로 $H^t_{self}$로 부터 도출되었고, $H^t_{pos}, H^t_{neg}$는 앞선 Temporal Graph Attention Mechanism을 통해 도출되었다. 3개의 임베딩을 input으로 하여 아래와 같은 과정을 통해 계산된다. 
+
 $$
-w_r  = \frac{1}{\vert \tilde{V} \vert} \sum_{v^t \in \tilde{V}}q^T \tanh(Wh_{v^t,r}+b)\\
-\beta_r = \frac{exp(w_r)}{\sum_{r \in (self, pos, neg)}exp(w_r)}\\
+w_r  = \frac{1}{\vert \tilde{V} \vert} \sum_{v^t \in \tilde{V}}q^T \tanh(Wh_{v^t,r}+b) \\
+\beta_r = \frac{exp(w_r)}{\sum_{r \in (self, pos, neg)}exp(w_r)} \\
 Z^t = \sum_{r \in (self, pos, neg)} \beta_r  \cdot H^t_r 
 $$
 
@@ -69,6 +70,7 @@ MLP를 통해 3개의 임베딩을 transform하고 중요도를 측정하기 위
 
 ### __(e)Optimzation Objectives__
 목적함수는 다음과 같은 과정을 통해 계산된다. 상위 100개와 하위 100개에 속하는 200개의 주식을 선택하고 해당 노드에 각각 1과 0으로 레이블을 지정했다. 그 후로 한 계층의 MLP를 분류기로 사용하여 라벨링된 노드의 분류결과를 얻는다. Binary cross-entropy를 사용하여 다음과 같이 목적함수 L을 구하였다.
+
 $$
 \hat{Y}_l = \sigma(WZ^t_l + b) \\
 \mathcal L = \sum_{l \in \mathcal Y_t}[Y^t_l \log(\hat{Y}_l) + (1- Y_l^t)log(1- \hat{Y}_l)]
